@@ -1,88 +1,110 @@
-import React, { useState } from 'react';
-import { 
+import React, { useEffect, useRef, useState } from "react";
+
+import ReactAudioPlayer from "react-audio-player";
+import {
   Container,
   Guy,
   Drone,
   DroneBase,
-  DronePropellers 
-} from './style';
+  DronePropellers,
+  AudioMute,
+} from "./style";
+import droneAudio from "../../ui/assets/audio/drone-sound.mp3";
+import { VolumeHighOutline as OpenVolume } from "react-ionicons";
+import { VolumeMuteOutline as CloseVolume } from "react-ionicons";
 
 const Playground = () => {
-  const [dronePosition, setDronePosition] = useState({left: '50%', top: '20%'});
+  const droneRef = useRef(null);
+  const [audioMuted, setAudioMuted] = useState(false);
 
-    let xMouse, yMouse;
+  const positionRef = useRef({
+    mouseX: 0,
+    mouseY: 0,
+    destinationX: 0,
+    destinationY: 0,
+    distanceX: 0,
+    distanceY: 0,
+    key: -1,
+  });
+
+  useEffect(() => {
     document.addEventListener("mousemove", (event) => {
-      xMouse = event.clientX;
-      yMouse = event.clientY;
+      const { clientX, clientY } = event;
+      const mouseX = clientX;
+      const mouseY = clientY;
+
+      positionRef.current.mouseX = mouseX - droneRef.current.clientWidth / 2;
+      positionRef.current.mouseY = mouseY - droneRef.current.clientHeight / 2;
     });
 
-    let x = void 0,
-        y = void 0,
-        dx = void 0,
-        dy = void 0,
-        tx = 0,
-        ty = 0,
-        key = -1;
+    return () => {};
+  }, []);
 
+  useEffect(() => {
     const followMouse = () => {
-      key = requestAnimationFrame(followMouse);
-      
-      if(!x || !y) {
-        x = xMouse;
-        y = yMouse;
+      positionRef.current.key = requestAnimationFrame(followMouse);
+
+      const {
+        mouseX,
+        mouseY,
+        destinationX,
+        destinationY,
+        distanceX,
+        distanceY,
+      } = positionRef.current;
+
+      if (!destinationX || !destinationY) {
+        positionRef.current.destinationX = mouseX;
+        positionRef.current.destinationY = mouseY;
       } else {
-        dx = (xMouse - x);
-        dy = (yMouse - y);
-        if(Math.abs(dx) + Math.abs(dy) < 0.1) {
-            x = xMouse;
-            y = yMouse;
+        positionRef.current.distanceX = (mouseX - destinationX) * 0.05;
+        positionRef.current.distanceY = (mouseY - destinationY) * 0.05;
+
+        if (
+          Math.abs(positionRef.current.distanceX) +
+            Math.abs(positionRef.current.distanceY) <
+          0.1
+        ) {
+          positionRef.current.destinationX = mouseX;
+          positionRef.current.destinationY = mouseY;
         } else {
-          x += dx;
-          y += dy;
+          positionRef.current.destinationX += distanceX;
+          positionRef.current.destinationY += distanceY;
         }
       }
-      setDronePosition({left: x + 'px', top: y + 'px'});
+      droneRef.current.style.top = `${destinationY}px`;
+      droneRef.current.style.left = `${destinationX}px`;
+    };
 
-      /**************
-       * 
-       *  PROVA A NON USARE USESTATE
-       * 
-       * 
-       */
-    }   
-
-    const returnPosition = () => {
-      key = requestAnimationFrame(returnPosition);
-      setDronePosition({left: '50%', top: '20%'});
-    }
+    followMouse();
+  }, []);
 
   return (
     <>
-      <Container 
-        //className="board"
-        onMouseEnter={() => followMouse()}
-        onMouseLeave={() => returnPosition()}
-      >
-        <Guy 
-          //className="guy"
-        ></Guy>
-        <Drone
-          style={{ top: `${dronePosition?.top}`, left: `${dronePosition?.left}`}}
-          //id="ball"
-        >
-          <DroneBase 
+      <Container>
+        <Guy></Guy>
+        <Drone ref={droneRef}>
+          <DroneBase
             src="https://i.ibb.co/VVYP85L/base-drone.png"
-            alt="base-drone" 
+            alt="base-drone"
           />
-          <DronePropellers 
+          <DronePropellers
             src="https://i.ibb.co/dQF3c9t/drone-propellers.png"
-            alt="propellers-drone" 
+            alt="propellers-drone"
           />
         </Drone>
+        <AudioMute onClick={() => setAudioMuted(!audioMuted)}>
+          {!audioMuted ? (
+            <OpenVolume color={"#F1F1F1"} height="37px" width="37px" />
+          ) : (
+            <CloseVolume color={"#F1F1F1"} height="37px" width="37px" />
+          )}
+        </AudioMute>
       </Container>
-      <div style={{height: '1900px'}}></div>
+      <div style={{ height: "1900px" }}></div>
+      <ReactAudioPlayer src={droneAudio} autoPlay loop muted={audioMuted} />
     </>
-  )
-}
+  );
+};
 
 export default Playground;

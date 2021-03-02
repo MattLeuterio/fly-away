@@ -1,7 +1,9 @@
-import styled, { keyframes } from 'styled-components';
+import styled from 'styled-components';
 import { vibrate, propellers } from './animationDrone';
+import theme from '../../ui/theme';
 
 export const Container = styled.div`
+  position: relative;
   width: 100%;
   height: 100vh;
   overflow: hidden;
@@ -9,6 +11,7 @@ export const Container = styled.div`
   background-size: cover;
   background-repeat: no-repeat;
   background-position-y: bottom;
+  border-radius: 0px 0px 75px 75px;
 `;
 
 export const Guy = styled.div`
@@ -30,8 +33,8 @@ export const Drone = styled.div`
   z-index: 1;
   height: 60px;
   position: absolute;
-  left: '50%';
-  top: '20%';
+  left: 50%;
+  top: 20%;
   margin: -50px 0 0 20px;
   pointer-events: none;
 	animation: ${vibrate} 1.2s ease-in-out infinite both;
@@ -48,5 +51,20 @@ export const DronePropellers = styled.img`
   left: 0;
   filter: contrast(0.9) blur(0.7px);
 	animation: ${propellers} 0.01s linear infinite both;
+`;
+
+export const AudioMute = styled.div`
+  position: absolute;
+  cursor: pointer;
+  z-index: ${theme.zIndex.absoluteUp};
+  justify-content: center;
+  align-items: center;
+  right: 70px;
+  bottom: 70px;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid ${theme.colors.primary.white};
+  display: flex;
 `;
 
